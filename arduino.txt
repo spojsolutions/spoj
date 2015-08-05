@@ -1,0 +1,116 @@
+
+ 
+  int Gpsdata;             // for incoming serial data 
+  unsigned int finish =0;  // indicate end of message
+  unsigned int pos_cnt=0;  // position counter
+  unsigned int lat_cnt=0;  // latitude data counter 
+  unsigned int log_cnt=0;  // longitude data counter
+  unsigned int tm_cnt = 0; // time data counter
+  unsigned int flg    =0;  // GPS flag 
+  unsigned int com_cnt=0;  // comma counter
+  unsigned int tmp_cnt = 0; //
+  char lat[20];            // latitude array
+  char lg[20];             // longitude array
+  char tm[20];             // time array
+  char validity;        // validity of data
+  char dir1 , dir2;         // direction N/E
+  char date[10] ;           // date array
+  int ledPin = 13;                  // LED test pin
+  int rxPin = 0;                    // RX PIN 
+  int txPin = 1;
+  char temp;
+ 
+  void Receive_GPS_Data();
+  void setup()
+  {
+    pinMode(ledPin, OUTPUT);       // Initialize LED pin
+    pinMode(rxPin, INPUT);
+    pinMode(txPin, OUTPUT);
+    Serial.begin(9600);   // opens serial port, sets data rate to 9600 bps
+  }
+ 
+  void loop()
+  {
+      Receive_GPS_Data();              
+      Serial.print("Latitude : ");
+      Serial.println(lat);
+      Serial.print(dir1);
+      Serial.print("Longitude : ");
+      Serial.println(lg);
+      Serial.print(dir1);
+      Serial.print("Time :- ");
+      Serial.println(tm);
+      Serial.print("Date :- ");
+      Serial.println(date);
+      Serial.print("Validity :- ");
+      Serial.println(validity);
+      finish=0;pos_cnt = 0;
+ 
+  }
+  void Receive_GPS_Data()
+  {
+    while(finish==0){
+      while(Serial.available()>0){         // Check GPS data 
+        Gpsdata = Serial.read();
+        temp = (char)Gpsdata;
+        //Serial.print(temp);
+        flg = 1;
+       if( temp=='$' && pos_cnt == 0)   // finding GPRMC header
+         pos_cnt=1;
+       if( temp=='G' && pos_cnt == 1)
+         pos_cnt=2;
+       if( temp=='P' && pos_cnt == 2)
+         pos_cnt=3;
+       if( temp=='R' && pos_cnt == 3)
+         pos_cnt=4;
+       if( temp=='M' && pos_cnt == 4)
+         pos_cnt=5;
+       if( temp=='C' && pos_cnt==5 )
+         pos_cnt=6;
+       if(pos_cnt==6 &&  temp ==','){   // count commas in message 
+         com_cnt++;
+         flg=0;
+       } 
+       if(com_cnt == 1 && flg == 1){
+          tm[tm_cnt++] = temp;
+          flg = 0;
+       }
+       if(com_cnt == 2 && flg == 1){
+          validity = temp;
+          flg = 0;
+       }
+       if(com_cnt==3 && flg==1){
+        lat[lat_cnt++] =  temp;         // latitude
+        flg=0;
+       }
+       if(com_cnt == 4 && flg == 1){
+          dir1 = temp;
+          flg = 0;
+       }
+       if(com_cnt==5 && flg==1){
+         lg[log_cnt++] =  temp;         // Longitude 
+         flg=0;
+       }
+       if(com_cnt == 6 && flg == 1){
+          dir2 = temp;
+          flg = 0;
+       }
+       if(com_cnt == 9 && flg == 1){
+          date[tmp_cnt++] = temp;
+          flg=0;
+       }
+       if( temp == '*' && com_cnt >= 5){
+         com_cnt = 0;                      // end of GPRMC message
+         lat_cnt = 0;
+         log_cnt = 0;
+         tm_cnt = 0;
+         tmp_cnt = 0;
+         flg     = 0;
+         finish  = 1;
+         validity = 'L';
+          dir2 = 'A';
+          dir1 = 'A';
+      }
+    } 
+ }
+}

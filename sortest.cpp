@@ -1,0 +1,1 @@
+l="%d"main(a,b,c){for(scanf(l,a);a--;scanf(l,b),if(b%3)c++)printf(l,c);return 0};

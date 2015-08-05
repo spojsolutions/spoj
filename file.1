@@ -1,0 +1,16 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+%}
+
+%%
+(if|else|do|while|for|else|goto) {printf("\n%s is Tokens\n",yytext);}
+[a-zA-Z]([a-z]|[0-9])* {printf("\n%s is Identifiers\n",yytext);}
+[0-9]* {printf("\n%s Numbers\n",yytext);}
+.* {printf("\nInvalid\n");}
+%%
+main(){
+yylex();
+return 0;
+}
